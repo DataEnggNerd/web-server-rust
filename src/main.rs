@@ -1,11 +1,7 @@
 use std::{
-    fs,
-    time::Duration,
-    thread::sleep,
-    net::{TcpListener, TcpStream},
-    io::{prelude::*, BufReader}
+    fs, io::{prelude::*, BufReader}, net::{TcpListener, TcpStream}, thread::{sleep}, time::Duration
 };
-
+use web_server_rust::ThreadPool;
 
 fn handle_request(mut stream: TcpStream){
     let buff_reader = BufReader::new(&stream);
@@ -45,10 +41,15 @@ fn handle_request(mut stream: TcpStream){
 fn main(){
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
+    let pool = ThreadPool::new(4);
+
     for stream in listener.incoming(){
         let stream = stream.unwrap();
 
         println!("Connection established!");
-        handle_request(stream);
+        
+        pool.execute(||{
+            handle_request(stream);
+        })
     }
 }
